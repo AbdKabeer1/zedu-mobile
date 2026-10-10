@@ -51,11 +51,10 @@ const WelcomeScreen: React.FC = () => {
   };
 
   const openURL = async (url: string) => {
-    const supported = await Linking.canOpenURL(url);
-    if (supported) {
+    try {
       await Linking.openURL(url);
-    } else {
-      Alert.alert('Error', `Don't know how to open this URL: ${url}`);
+    } catch {
+      Alert.alert('Error', 'An error occurred while opening the link');
     }
   };
 
