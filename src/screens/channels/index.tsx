@@ -197,7 +197,7 @@ const ChannelHome = () => {
                         >
                           {item?.last_read_at
                             ? moment(item.last_read_at).calendar(null, {
-                                dsameDay: 'h:mm a',
+                                sameDay: 'h:mm a',
                                 lastDay: '[Yesterday]',
                                 lastWeek: 'dddd',
                                 sameElse: 'DD/MM/YYYY',
