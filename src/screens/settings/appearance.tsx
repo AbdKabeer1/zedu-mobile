@@ -131,7 +131,7 @@ const AppearanceScreen = () => {
         >
           <Ionicons name="chevron-back" size={24} color={colors.iconDefault} />
           <AppText variant="bold" style={styles.headerTitle}>
-            Appearance
+            Display Settings
           </AppText>
         </TouchableOpacity>
       </View>

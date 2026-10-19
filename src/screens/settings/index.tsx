@@ -189,7 +189,7 @@ const SettingsHome = () => {
             <View style={styles.divider} />
             <SettingItem
               icon="contrast-outline"
-              title="Appearance"
+              title="Display Settings"
               subtitle={getThemePreferenceLabel(preference)}
               onPress={() =>
                 navigation.navigate('SettingStack', { screen: 'Appearance' })
