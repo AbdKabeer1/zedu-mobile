@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
   StyleSheet,
   View,
@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import { AppText } from '@/components/ui/text';
 import { AppButton } from '@/components/ui/button';
-import { ShowNotify } from '@/components/ui/toast';
 import { normalize } from '@/utils/normalize';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -20,6 +19,7 @@ import { DeleteRequest } from '@/utils/requests';
 import { signOut } from '@/utils/sign-out';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
+import { ShowNotify } from '@/components/ui/toast';
 
 const DELETE_REASONS = [
   "I'm using a different app",
@@ -153,8 +153,8 @@ const DeleteAccountScreen: React.FC = ({ navigation }: any) => {
   const [otherReason, setOtherReason] = useState('');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const deleteInFlight = useRef(false);
   const { dispatch } = useDataContext();
-  const [_loading, setLoading] = useState(false);
 
   const isFormValid = useMemo(() => {
     if (!selectedReason) return false;
@@ -169,22 +169,16 @@ const DeleteAccountScreen: React.FC = ({ navigation }: any) => {
     }
   }, [isFormValid]);
 
-  const logout = async () => {
-    try {
-      setLoading(true);
-      await signOut(dispatch);
-    } catch (e) {
-      console.error('Logout error', e);
-    } finally {
-      setLoading(false);
-    }
+  const closeConfirmationIfIdle = () => {
+    if (!deleteInFlight.current) setShowConfirmModal(false);
   };
 
   const handleDeleteAccount = async () => {
-    if (isDeleting) return;
+    if (deleteInFlight.current) return;
+    deleteInFlight.current = true;
+    setIsDeleting(true);
 
     try {
-      setIsDeleting(true);
       const { error } = await DeleteRequest('/users/me');
 
       if (error) {
@@ -196,11 +190,16 @@ const DeleteAccountScreen: React.FC = ({ navigation }: any) => {
       }
 
       // The account is deactivated server-side; clear the local session.
-      await logout();
-    } catch (e) {
-      console.error('Delete account error', e);
+      const signedOut = await signOut(dispatch, () =>
+        setShowConfirmModal(false),
+      );
+      if (!signedOut) {
+        ShowNotify('Error', 'Unable to delete your account. Please try again.');
+      }
+    } catch {
       ShowNotify('Error', 'Could not delete your account. Please try again.');
     } finally {
+      deleteInFlight.current = false;
       setIsDeleting(false);
     }
   };
@@ -309,12 +308,18 @@ const DeleteAccountScreen: React.FC = ({ navigation }: any) => {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <Modal visible={showConfirmModal} transparent animationType="slide">
+      <Modal
+        visible={showConfirmModal}
+        transparent
+        animationType="slide"
+        onRequestClose={closeConfirmationIfIdle}
+      >
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <TouchableOpacity
               style={styles.closeModal}
-              onPress={() => setShowConfirmModal(false)}
+              onPress={closeConfirmationIfIdle}
+              disabled={isDeleting}
             >
               <Ionicons name="close" size={24} color={colors.textSecondary} />
             </TouchableOpacity>
@@ -340,8 +345,9 @@ const DeleteAccountScreen: React.FC = ({ navigation }: any) => {
                 style={styles.finalDeleteBtn}
               />
               <TouchableOpacity
-                onPress={() => setShowConfirmModal(false)}
+                onPress={closeConfirmationIfIdle}
                 style={styles.keepAccountBtn}
+                disabled={isDeleting}
               >
                 <AppText variant="semiBold" style={{ color: colors.primary }}>
                   I've changed my mind
