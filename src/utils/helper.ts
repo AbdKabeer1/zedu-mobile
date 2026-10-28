@@ -66,7 +66,9 @@ export const retrieveMultipleData = async (keys: string[]) => {
 export const clearAllData = async () => {
   try {
     await AsyncStorage.clear();
+    return true;
   } catch (e) {
     console.error('Error clearing local storage:', e);
+    return false;
   }
 };
