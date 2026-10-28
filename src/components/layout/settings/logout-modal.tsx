@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   View,
   Modal,
@@ -12,6 +12,7 @@ import { useDataContext } from '@/store/useDataContext';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '@/theme/ThemeProvider';
 import { createLogoutModalStyles } from '@/theme/createChatOverlayStyles';
+import { ShowNotify } from '@/components/ui/toast';
 
 interface LogoutModalProps {
   visible: boolean;
@@ -24,14 +25,26 @@ const LogoutConfirmationModal = ({ visible, onClose }: LogoutModalProps) => {
   const { dispatch } = useDataContext();
   const _navigation = useNavigation();
   const [loading, setLoading] = useState(false);
+  const logoutInFlight = useRef(false);
+
+  const closeIfIdle = () => {
+    if (!logoutInFlight.current) onClose();
+  };
 
   const logout = async () => {
+    if (logoutInFlight.current) return;
+    logoutInFlight.current = true;
+    setLoading(true);
+
     try {
-      setLoading(true);
-      await signOut(dispatch);
-    } catch (e) {
-      console.error('Logout error', e);
+      const signedOut = await signOut(dispatch, onClose);
+      if (!signedOut) {
+        ShowNotify('Error', 'Unable to log out. Please try again.');
+      }
+    } catch {
+      ShowNotify('Error', 'Unable to log out. Please try again.');
     } finally {
+      logoutInFlight.current = false;
       setLoading(false);
     }
   };
@@ -41,9 +54,9 @@ const LogoutConfirmationModal = ({ visible, onClose }: LogoutModalProps) => {
       transparent
       visible={visible}
       animationType="fade"
-      onRequestClose={onClose}
+      onRequestClose={closeIfIdle}
     >
-      <TouchableWithoutFeedback onPress={onClose}>
+      <TouchableWithoutFeedback onPress={closeIfIdle}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
             <View style={styles.modalContainer}>
@@ -56,7 +69,11 @@ const LogoutConfirmationModal = ({ visible, onClose }: LogoutModalProps) => {
               </AppText>
 
               <View style={styles.buttonContainer}>
-                <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={closeIfIdle}
+                  disabled={loading}
+                >
                   <AppText style={styles.cancelText}>Cancel</AppText>
                 </TouchableOpacity>
 

@@ -6,7 +6,14 @@ import { clearAllData } from '@/utils/helper';
  * Signs the user out on this device: clears saved data and resets the whole
  * in-memory state, so nothing from this account is shown to the next one.
  */
-export const signOut = async (dispatch: Dispatch<Action>) => {
-  await clearAllData();
+export const signOut = async (
+  dispatch: Dispatch<Action>,
+  beforeReset?: () => void,
+) => {
+  const cleared = await clearAllData();
+  if (!cleared) return false;
+
+  beforeReset?.();
   dispatch({ type: ACTIONS.RESET_STATE });
+  return true;
 };
