@@ -9,7 +9,7 @@ import { signOut } from '@/utils/sign-out';
 import { clearAllData } from '@/utils/helper';
 
 jest.mock('@/utils/helper', () => ({
-  clearAllData: jest.fn(() => Promise.resolve()),
+  clearAllData: jest.fn(() => Promise.resolve(true)),
 }));
 
 describe('RESET_STATE', () => {
