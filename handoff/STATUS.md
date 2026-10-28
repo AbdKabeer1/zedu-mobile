@@ -12,6 +12,7 @@ Last updated: 2026-10-28
 - Added and passed 12 focused tests across utility and UI behavior.
 - `npm run check-format`, `npm run check-lint`, and `npm run check-types` pass.
 - Preserved the implementation branch and created clean delivery branch `fix/ziki-250-loading-states-central` from the requested target.
+- Self-review fixed the partial-success path so a local sign-out retry never repeats the backend account-deletion request.
 
 ## In progress
 

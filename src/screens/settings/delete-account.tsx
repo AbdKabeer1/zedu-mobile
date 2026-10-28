@@ -154,6 +154,7 @@ const DeleteAccountScreen: React.FC = ({ navigation }: any) => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const deleteInFlight = useRef(false);
+  const accountDeleted = useRef(false);
   const { dispatch } = useDataContext();
 
   const isFormValid = useMemo(() => {
@@ -179,14 +180,18 @@ const DeleteAccountScreen: React.FC = ({ navigation }: any) => {
     setIsDeleting(true);
 
     try {
-      const { error } = await DeleteRequest('/users/me');
+      if (!accountDeleted.current) {
+        const { error } = await DeleteRequest('/users/me');
 
-      if (error) {
-        ShowNotify(
-          'Error',
-          error || 'Could not delete your account. Please try again.',
-        );
-        return;
+        if (error) {
+          ShowNotify(
+            'Error',
+            error || 'Could not delete your account. Please try again.',
+          );
+          return;
+        }
+
+        accountDeleted.current = true;
       }
 
       // The account is deactivated server-side; clear the local session.
@@ -194,7 +199,10 @@ const DeleteAccountScreen: React.FC = ({ navigation }: any) => {
         setShowConfirmModal(false),
       );
       if (!signedOut) {
-        ShowNotify('Error', 'Unable to delete your account. Please try again.');
+        ShowNotify(
+          'Error',
+          'Your account was deleted, but sign-out could not finish. Restart the app to clear local data.',
+        );
       }
     } catch {
       ShowNotify('Error', 'Could not delete your account. Please try again.');

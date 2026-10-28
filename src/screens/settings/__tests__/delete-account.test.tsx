@@ -163,7 +163,7 @@ describe('DeleteAccountScreen', () => {
     expect(mockDispatch).toHaveBeenCalled();
   });
 
-  it('restores confirmation controls and notifies the user when deletion fails', async () => {
+  it('retries only local sign-out after the account was deleted', async () => {
     jest.mocked(DeleteRequest).mockResolvedValue({ data: {}, error: null });
     jest.mocked(signOut).mockResolvedValue(false);
     const renderer = renderDeleteAccount();
@@ -184,7 +184,14 @@ describe('DeleteAccountScreen', () => {
     expect(mockDispatch).not.toHaveBeenCalled();
     expect(ShowNotify).toHaveBeenCalledWith(
       'Error',
-      'Unable to delete your account. Please try again.',
+      'Your account was deleted, but sign-out could not finish. Restart the app to clear local data.',
     );
+
+    await act(async () => {
+      await permanentDeleteButton(renderer).props.onPress();
+    });
+
+    expect(DeleteRequest).toHaveBeenCalledTimes(1);
+    expect(signOut).toHaveBeenCalledTimes(2);
   });
 });

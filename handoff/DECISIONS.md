@@ -34,3 +34,8 @@
 
 - `central-staging` centralizes session reset in `src/utils/sign-out.ts` and already calls the account-deletion backend.
 - The delivery implementation extends that helper with a success result and pre-reset callback rather than duplicating dispatch logic in both screens.
+
+## Never repeat backend deletion after partial success
+
+- If account deletion succeeds but local sign-out fails, the next tap retries only local sign-out.
+- The error explicitly says the account was deleted and recommends restarting, instead of incorrectly claiming deletion failed.
