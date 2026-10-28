@@ -11,7 +11,8 @@ Prevent repeated taps and show visible progress while users log out or confirm a
 - [x] Duplicate-action guards for both destructive flows.
 - [x] Error notification and restored controls when local data clearing fails.
 - [x] Unit/component regression coverage.
-- [ ] Pull request opened and linked to Ziki #250.
+- [x] Pull request opened: https://github.com/zeduchat/zedu-mobile/pull/302.
+- [x] Delivery evidence posted to Ziki #250 as comment `cmvs8t0660025pe014mu2b6mh`.
 
 ## Acceptance criteria
 
